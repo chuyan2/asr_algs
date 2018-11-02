@@ -18,6 +18,17 @@ librosa == 0.6.2
 ConfigParser == 3.5.0
 ctcdecode == 0.3      从166:/home/chuyan/ctcdecode/拷贝 运行其中的run.sh
 ```
+### configs/test.config 配置：
+```
+在test.config的test字段中有三个属性：
+model_path,lm_path 指示出神经网络模型，语言模型的路径；
+gpu　指示出使用的显卡号，目前仅使用一块卡，如"gpu=2"使用2号显卡,若使用cpu，则"gpu="
+```
+
 ### 训练模型
 ./train.sh
-训练不面向实时解码的模型，将train.py中的import model_realtime替换为import model
+
+### 测试模型
+./run_test.sh 10c1.wav 
+或
+./run_test.sh x.csv
