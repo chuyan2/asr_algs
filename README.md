@@ -64,8 +64,9 @@ test_predictor.predict(audio_path)
 #audio_path为音频数据路径
 
 ```
-## 四、速度：
+## 四、模型训练：
 ```
-测试基于socket的在线语音识别，识别耗时大约为语音时长的10%-20%左右
+./train.sh
 
 ```
+
