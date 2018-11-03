@@ -45,6 +45,8 @@ class Predictor(object):
         self.model.eval()
         labels = DeepSpeech.get_labels(self.model)
         audio_conf = DeepSpeech.get_audio_conf(self.model)
+        if 'noise_dir' in audio_conf:
+            del audio_conf['noise_dir']
         if lm_path:
             from decoder import BeamCTCDecoder
             self.decoder = BeamCTCDecoder(labels, lm_path=lm_path, alpha=alpha, beta=beta,
@@ -52,6 +54,7 @@ class Predictor(object):
                                  beam_width=beam_width, num_processes=lm_workers)
         else:
             self.decoder = GreedyDecoder(labels, blank_index=labels.index('_'))
+        
         self.parser = SpectrogramParser(audio_conf, normalize=True)
     def predict(self, audio_path):
         spect = self.parser.parse_audio(audio_path).contiguous()

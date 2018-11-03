@@ -56,7 +56,7 @@ class NoiseInjection(object):
         Modified code from https://github.com/willfrey/audio/blob/master/torchaudio/transforms.py
         """
         if not os.path.exists(path):
-            return
+            raise Exception('noise path not exists')
         self.paths = path is not None and librosa.util.find_files(path)
         self.sample_rate = sample_rate
         self.noise_levels = noise_levels
@@ -94,20 +94,22 @@ class SpectrogramParser(AudioParser):
         self.window = windows.get(audio_conf['window'], windows['hamming'])
         self.normalize = normalize
         self.augment = augment
-        
-        self.noiseInjector = NoiseInjection(audio_conf['noise_dir'], self.sample_rate,
+
+        if 'noise_dir' in audio_conf: 
+            self.noiseInjector = NoiseInjection(audio_conf['noise_dir'], self.sample_rate,
                                             audio_conf['noise_levels']) if audio_conf.get('noise_dir') is not None else None
-        #self.noiseInjector = None
-        self.noise_prob = audio_conf.get('noise_prob')
+            self.noise_prob = audio_conf.get('noise_prob')
+        else:
+            self.noiseInjector = None
 
     def parse_audio(self, audio_path):
         if self.augment:
             y = load_randomly_augmented_audio(audio_path, self.sample_rate)
         else:
             y = load_audio(audio_path)
-        if self.noiseInjector:
+        if self.noiseInjector is not None:
             add_noise = np.random.binomial(1, self.noise_prob)
-            if False:
+            if add_noise:
                 y = self.noiseInjector.inject_noise(y)
         n_fft = int(self.sample_rate * self.window_size)
         win_length = n_fft

@@ -143,3 +143,107 @@ Sat, 03 Nov 2018 16:41:10 train.py[line:236] INFO Training Summary Epoch: [18]	T
 Sat, 03 Nov 2018 16:41:12 train.py[line:271] INFO Validation Summary Epoch: [18]	Average CER 98.444	
 Sat, 03 Nov 2018 16:41:12 train.py[line:282] INFO Learning rate annealed to: 0.000054
 Sat, 03 Nov 2018 16:41:12 train.py[line:291] INFO Shuffling batches...
+Sat, 03 Nov 2018 18:24:01 train.py[line:109] INFO Model Save directory already exists.
+Sat, 03 Nov 2018 18:24:01 train.py[line:115] INFO Loading checkpoint model model/model.pth
+Sat, 03 Nov 2018 18:24:06 train.py[line:170] INFO Shuffling batches for the following epochs
+Sat, 03 Nov 2018 18:24:06 train.py[line:174] INFO DataParallel(
+  (module): DeepSpeech(
+    (conv): Sequential(
+      (0): Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(0, 10))
+      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): Hardtanh(min_val=0, max_val=20, inplace)
+      (3): Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1))
+      (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): Hardtanh(min_val=0, max_val=20, inplace)
+    )
+    (rnns): Sequential(
+      (0): BatchRNN(
+        (rnn): GRU(672, 800, bias=False, bidirectional=True)
+      )
+      (1): BatchRNN(
+        (batch_norm): SequenceWise (
+        BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+        (rnn): GRU(800, 800, bias=False, bidirectional=True)
+      )
+      (2): BatchRNN(
+        (batch_norm): SequenceWise (
+        BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+        (rnn): GRU(800, 800, bias=False, bidirectional=True)
+      )
+      (3): BatchRNN(
+        (batch_norm): SequenceWise (
+        BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+        (rnn): GRU(800, 800, bias=False, bidirectional=True)
+      )
+      (4): BatchRNN(
+        (batch_norm): SequenceWise (
+        BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+        (rnn): GRU(800, 800, bias=False, bidirectional=True)
+      )
+    )
+    (fc): Sequential(
+      (0): SequenceWise (
+      Sequential(
+        (0): BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (1): Linear(in_features=800, out_features=6276, bias=False)
+      ))
+    )
+    (inference_softmax): InferenceBatchSoftmax()
+  )
+)
+Sat, 03 Nov 2018 18:24:06 train.py[line:175] INFO Number of parameters: 43065568
+Sat, 03 Nov 2018 18:24:42 train.py[line:109] INFO Model Save directory already exists.
+Sat, 03 Nov 2018 18:24:42 train.py[line:115] INFO Loading checkpoint model model/model.pth
+Sat, 03 Nov 2018 18:24:48 train.py[line:170] INFO Shuffling batches for the following epochs
+Sat, 03 Nov 2018 18:24:48 train.py[line:174] INFO DataParallel(
+  (module): DeepSpeech(
+    (conv): Sequential(
+      (0): Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(0, 10))
+      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): Hardtanh(min_val=0, max_val=20, inplace)
+      (3): Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1))
+      (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): Hardtanh(min_val=0, max_val=20, inplace)
+    )
+    (rnns): Sequential(
+      (0): BatchRNN(
+        (rnn): GRU(672, 800, bias=False, bidirectional=True)
+      )
+      (1): BatchRNN(
+        (batch_norm): SequenceWise (
+        BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+        (rnn): GRU(800, 800, bias=False, bidirectional=True)
+      )
+      (2): BatchRNN(
+        (batch_norm): SequenceWise (
+        BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+        (rnn): GRU(800, 800, bias=False, bidirectional=True)
+      )
+      (3): BatchRNN(
+        (batch_norm): SequenceWise (
+        BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+        (rnn): GRU(800, 800, bias=False, bidirectional=True)
+      )
+      (4): BatchRNN(
+        (batch_norm): SequenceWise (
+        BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+        (rnn): GRU(800, 800, bias=False, bidirectional=True)
+      )
+    )
+    (fc): Sequential(
+      (0): SequenceWise (
+      Sequential(
+        (0): BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (1): Linear(in_features=800, out_features=6276, bias=False)
+      ))
+    )
+    (inference_softmax): InferenceBatchSoftmax()
+  )
+)
+Sat, 03 Nov 2018 18:24:48 train.py[line:175] INFO Number of parameters: 43065568
+Sat, 03 Nov 2018 18:24:52 train.py[line:227] INFO Epoch: [14][1/1]	Time 2.777 (2.777)	Data 0.000 (0.000)	Loss 133.0517 (133.0517)	
+Sat, 03 Nov 2018 18:24:52 train.py[line:236] INFO Training Summary Epoch: [14]	Time taken (s): 4	Average Loss 133.052	
+Sat, 03 Nov 2018 18:24:53 train.py[line:271] INFO Validation Summary Epoch: [14]	Average CER 98.444	
+Sat, 03 Nov 2018 18:24:53 train.py[line:282] INFO Learning rate annealed to: 0.000072
+Sat, 03 Nov 2018 18:24:53 train.py[line:285] INFO Found better validated model, saving to model/model.pth
+Sat, 03 Nov 2018 18:24:55 train.py[line:291] INFO Shuffling batches...
