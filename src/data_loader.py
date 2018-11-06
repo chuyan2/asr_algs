@@ -15,7 +15,11 @@ def load_audio_wave(path):
     b = f.readframes(f.getnframes())
     v = np.fromstring(b[:len(b)-len(b)%8],np.int32)
     f.close()
-    return np.float32(v)
+    s=0
+    while v[s] == 0:s +=1
+    e=len(v)-1
+    while v[e] == 0: e -=1
+    return np.float32(v[s:e+1])
 
 def load_audio_torch(path):
     import torchaudio
@@ -28,7 +32,9 @@ def load_audio_torch(path):
             sound = sound.mean(axis=1)  # multiple channels, average
     return sound
 
+
 load_audio = load_audio_wave
+#load_audio = load_audio_torch
 
 def save_audio(v,save_name='tmp.wav'):
     print('type v',type(v[0]))
@@ -42,8 +48,6 @@ def save_audio(v,save_name='tmp.wav'):
     f.writeframes(v.tostring())
     f.close()
    
-
-
 class SpectrogramParser():
     def __init__(self, audio_conf):
 
@@ -61,19 +65,13 @@ class SpectrogramParser():
         raise NotImplementedError
 
     def wav_vector2nn_input(self,v):
-        # STFT
         D = librosa.stft(v, n_fft=self.n_fft, hop_length=self.hop_length,center=True,
                          win_length=self.n_fft, window=self.window)
         spect, phase = librosa.magphase(D)
-        # S = log(S+1)
         spect = np.log1p(spect)
         spect = torch.FloatTensor(spect)
 
-#        spect.add_(self.mean)
-#        spect.div_(self.std)
-        mean = spect.mean()
-        std = spect.std()
-        spect.add_(-mean)
-        spect.div_(std)
+        spect.add_(self.mean)
+        spect.div_(self.std)
         return spect
 

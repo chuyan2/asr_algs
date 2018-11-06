@@ -158,6 +158,7 @@ if __name__ == '__main__':
                                     momentum=args.momentum, nesterov=True)
 
     decoder = GreedyDecoder(labels)
+    audio_conf['noise_dir'] = args.noise_dir
     train_dataset = SpectrogramDataset(audio_conf=audio_conf, manifest_filepath=args.train_manifest, labels=labels,logging=logging)
     del audio_conf['noise_dir']
     test_dataset = SpectrogramDataset(audio_conf=audio_conf, manifest_filepath=args.val_manifest, labels=labels,logging=logging)
