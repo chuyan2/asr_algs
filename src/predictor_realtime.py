@@ -69,7 +69,8 @@ class Predictor(object):
         else:
             self.model = DeepSpeech.load_model(model_path, False)
             
-        self.model.eval()
+        #self.model.eval()
+        #self.model.train()
         labels = DeepSpeech.get_labels(self.model)
         audio_conf = DeepSpeech.get_audio_conf(self.model)
         if lm_path:
@@ -106,8 +107,13 @@ class Predictor(object):
   
     def predict_realtime(self,x,tail_padding):
         x = self._control_conv_input(self.parser.parse_audio(x).contiguous())
-        out,self._realtime_info = self.model(x,tail_padding,self._realtime_info)    
-        self._realtime_nn_out = torch.cat((self._realtime_nn_out,out),1)
+#        self.model.train()
+#        out1 = self.model(x,tail_padding,self._realtime_info)    
+
+        self.model.eval()
+        out2,self._realtime_info = self.model(x,tail_padding,self._realtime_info)    
+        print('out size',out2.size())
+        self._realtime_nn_out = torch.cat((self._realtime_nn_out,out2),1)
 
     
     def realtime_res(self):
@@ -119,11 +125,15 @@ class Predictor(object):
         print('txt:',transcriptions,'consumed',time.time()-t1)
         return transcriptions 
 
-    def predict(self,audio_path):
+    def predict(self,audio_path,label=None):
         x = load_audio(audio_path)
         self.predict_realtime(x,True)
         decoded_output, _ = self.decoder.decode(self._realtime_nn_out.data)
         transcriptions = decode_results(decoded_output)['output'][0]['transcription']
         self.flush_realtime()
-        return transcriptions
+        if label is None:
+            return transcriptions
+        else:
+            cer = self.decoder.cer(label,transcriptions)/float(len(label))
+            return transcriptions,cer
 

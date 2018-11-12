@@ -47,8 +47,10 @@ class SpectrogramParserTrain(SpectrogramParser):
 
         self.logging=logging
         if 'noise_dir' not in audio_conf:
+            self.logging.info('no noise')
             self.noise_injector = None
         elif audio_conf['noise_dir'] is None:
+            self.logging.info('no noise')
             self.noise_injector = None
         else:
             self.noise_injector = NoiseInjection(audio_conf['noise_dir']) 
@@ -62,7 +64,6 @@ class SpectrogramParserTrain(SpectrogramParser):
         if self.noise_injector is not None:
             if np.random.binomial(1, self.noise_prob):
                 y = self.noise_injector.inject_noise(y)
-
         return self.wav_vector2nn_input(y)
 
 
@@ -108,13 +109,12 @@ class SpectrogramDataset(Dataset, SpectrogramParserTrain):
 def _collate_fn(batch):
     def func(p):
         return p[0].size(1)
-
     longest_sample = max(batch, key=func)[0]
     freq_size = longest_sample.size(0)
     minibatch_size = len(batch)
     max_seqlength = longest_sample.size(1)
     inputs = torch.zeros(minibatch_size, 1, freq_size, max_seqlength)
-    input_percentages = torch.FloatTensor(minibatch_size)
+    input_length = torch.FloatTensor(minibatch_size)
     target_sizes = torch.IntTensor(minibatch_size)
     targets = []
     for x in range(minibatch_size):
@@ -123,11 +123,11 @@ def _collate_fn(batch):
         target = sample[1]
         seq_length = tensor.size(1)
         inputs[x][0].narrow(1, 0, seq_length).copy_(tensor)
-        input_percentages[x] = seq_length / float(max_seqlength)
+        input_length[x] = seq_length
         target_sizes[x] = len(target)
         targets.extend(target)
     targets = torch.IntTensor(targets)
-    return inputs, targets, input_percentages, target_sizes
+    return inputs, targets, input_length, target_sizes
 
 
 class AudioDataLoader(DataLoader):

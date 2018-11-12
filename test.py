@@ -24,19 +24,20 @@ class Demo():
             for line in lines:
                 if ',' in line:
                     wav,txt = line.split(',')
-                    t1=time.time()
-                    p = self.predictor.predict(wav)
-                    print(time.time()-t1)
                     with open(txt) as t:
                         label = t.read()
                         if label[-1] == '\n':
                             label = label[:-1]
-                        one_cer = error_rate.cer(label,p)
-                        total_cer += one_cer
-                        print("label",label)
-                        print("predict",p)
-                        print("cer",one_cer)
-                        case_num += 1
+
+                    print("label",label)
+                    p,cer = self.predictor.predict(wav,label)
+                    print("cer1",cer)
+
+                    cer2 = error_rate.cer(label,p)
+                    print("cer2",cer2)
+                    print(p)
+                    total_cer += cer
+                    case_num += 1
         average_cer = total_cer/case_num
         return average_cer
 

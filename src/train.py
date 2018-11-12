@@ -23,7 +23,10 @@ parser.add_argument('--train-manifest', metavar='DIR',
 parser.add_argument('--val-manifest', metavar='DIR',
                     help='path to validation manifest csv', default='data/val_manifest.csv')
 parser.add_argument('--batch-size', default=32, type=int, help='Batch size for training')
-parser.add_argument('--num-workers', default=2, type=int, help='Number of workers used in data-loading')
+parser.add_argument('--lr', '--learning-rate', default=1e-4, type=float, help='initial learning rate')
+
+
+parser.add_argument('--num-workers', default=1, type=int, help='Number of workers used in data-loading')
 parser.add_argument('--labels-path', default='configs/labels.json', help='Contains all characters for transcription')
 
 parser.add_argument('--sample-rate', default=16000, type=int, help='Sample rate')
@@ -37,7 +40,6 @@ parser.add_argument('--rnn-type', default='gru', help='Type of the RNN. rnn|gru|
 parser.add_argument('--epochs', default=70, type=int, help='Number of training epochs')
 parser.add_argument('--device-ids', default=None, nargs='+', type=int,
                     help='If using cuda, sets the GPU devices for the process')
-parser.add_argument('--lr', '--learning-rate', default=3e-4, type=float, help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
 parser.add_argument('--max-norm', default=400, type=int, help='Norm cutoff to prevent explosion of gradients')
 parser.add_argument('--learning-anneal', default=1.1, type=float, help='Annealing applied to learning rate every epoch')
@@ -88,16 +90,26 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
+
+def input_to_output_dim(input_length):
+    def i_o(x):
+        t = int((x-11)/2 + 1)
+        t = int((t-11) + 1)
+        return t
+
+    for i,v in enumerate(input_length):
+        input_length[i] = i_o(int(v))
+
+    return input_length
+
+
+
 if __name__ == '__main__':
     args = parser.parse_args()
     if args.gpu is not None: os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu
     save_folder = args.save_folder
     model_path = save_folder+'model.pth'
     
-    logging.basicConfig(level=logging.DEBUG,
-                format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-                datefmt='%a, %d %b %Y %H:%M:%S',
-                filename=save_folder+'train.log')
 
     main_proc = True
     loss_results, cer_results = torch.Tensor(args.epochs), torch.Tensor(args.epochs)
@@ -107,9 +119,16 @@ if __name__ == '__main__':
         os.makedirs(save_folder)
     except OSError as e:
         if e.errno == errno.EEXIST:
-            logging.info('Model Save directory already exists.')
+            pass
         else:
             raise
+
+
+    logging.basicConfig(level=logging.DEBUG,
+                format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                datefmt='%a, %d %b %Y %H:%M:%S',
+                filename=save_folder+'train.log')
+
 
     criterion = CTCLoss()
     if os.path.exists(model_path):  # Starting from previous model
@@ -142,7 +161,7 @@ if __name__ == '__main__':
                           window_stride=args.window_stride,
                           window=args.window,
                           noise_dir=args.noise_dir,
-                          noise_prob=args.noise_prob,
+                          noise_prob=float(args.noise_prob),
                           noise_levels=(args.noise_min, args.noise_max))
 
         rnn_type = args.rnn_type.lower()
@@ -181,11 +200,10 @@ if __name__ == '__main__':
 
     for epoch in range(start_epoch, args.epochs):
         model.train()
-        start_epoch_time = time.time()
         for i, (data) in enumerate(train_loader):
-            batch_start_time = time.time()
-            inputs, targets, input_percentages, target_sizes = data
-            data_time.update(time.time() - batch_start_time)
+            break
+            inputs, targets, input_length, target_sizes = data
+            if inputs.size(3) < 40:continue
 
             inputs = Variable(inputs, requires_grad=False)
             target_sizes = Variable(target_sizes, requires_grad=False)
@@ -196,19 +214,24 @@ if __name__ == '__main__':
             out = out.transpose(0, 1)  # TxNxH
 
             seq_length = out.size(0)
-            sizes = Variable(input_percentages.mul_(int(seq_length)).int(), requires_grad=False)
+
+
+            sizes = Variable(input_to_output_dim(input_length).int(), requires_grad=False)
+
             loss = criterion(out, targets, sizes, target_sizes)
-            loss = loss / inputs.size(0)  # average the loss by minibatch
+#            loss = loss / inputs.size(0)  # average the loss by minibatch
 
             loss_sum = loss.data.sum()
-            inf = float("inf")
-            if loss_sum == inf or loss_sum == -inf:
-                loss_value = 0
-            else:
-                loss_value = loss.item()
+            logging.info('loss  '+str(loss_sum))
+            #inf = float("inf")
+            #if loss_sum == inf or loss_sum == -inf:
+            #    loss_value = 0
+            #else:
+            #    loss_value = loss.item()
 
-            avg_loss += loss_value
-            losses.update(loss_value, inputs.size(0))
+            #avg_loss += loss_value
+
+            #losses.update(loss_value, inputs.size(0))
 
             # compute gradient
             optimizer.zero_grad()
@@ -218,48 +241,41 @@ if __name__ == '__main__':
             optimizer.step()
             torch.cuda.synchronize()
 
-            # measure elapsed time
-            batch_time.update(time.time() - batch_start_time)
-            logging.info('Epoch: [{0}][{1}/{2}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                    (epoch + 1), (i + 1), len(train_sampler), batch_time=batch_time,
-                    data_time=data_time, loss=losses))
+ #           batch_time.update(time.time() - batch_start_time)
+#            logging.info('Epoch: [{0}][{1}/{2}]\t'+'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'+'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'+'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format((epoch + 1), (i + 1), len(train_sampler), batch_time=batch_time,data_time=data_time, loss=losses))
             del loss
             del out
 
-        avg_loss /= len(train_sampler)
 
-        epoch_time = time.time() - start_epoch_time
-        logging.info('Training Summary Epoch: [{0}]\t'
-              'Time taken (s): {epoch_time:.0f}\t'
-              'Average Loss {loss:.3f}\t'.format(epoch + 1, epoch_time=epoch_time, loss=avg_loss))
-
+       # avg_loss /= len(train_sampler)
+       # epoch_time = time.time() - start_epoch_time
+       # logging.info('Training Summary Epoch: [{0}]\t'+'Time taken (s): {epoch_time:.0f}\t'+'Average Loss {loss:.3f}\t'.format(epoch + 1, epoch_time=epoch_time, loss=avg_loss))
         total_cer=0
-       # model.eval()
+        model.eval()
+        logging.info('validation')
         with torch.no_grad():
             for i, (data) in enumerate(test_loader):
-                inputs, targets, input_percentages, target_sizes = data
-                # unflatten targets
+                inputs, targets, input_length, target_sizes = data
+
                 split_targets = []
                 offset = 0
                 for size in target_sizes:
                     split_targets.append(targets[offset:offset + size])
                     offset += size
-
                 inputs = inputs.cuda()
-                out = model(inputs,True)  # NxTxH
+                out, _ = model(inputs,True)  # NxTxH
                 seq_length = out.size(1)
-                sizes = input_percentages.mul_(int(seq_length)).int()
 
-                decoded_output, _ = decoder.decode(out.data, sizes)
+                sizes = input_to_output_dim(input_length).int()
+
+                decoded_output, _ = decoder.decode(out.data,sizes)
                 target_strings = decoder.convert_to_strings(split_targets)
-                cer = 0
                 for x in range(len(target_strings)):
                     transcript, reference = decoded_output[x][0], target_strings[x][0]
-                    cer += decoder.cer(transcript, reference) / float(len(reference))
-                total_cer += cer
+                    total_cer += decoder.cer(transcript, reference) / float(len(reference))
+                    logging.info(reference+' '+transcript)
+                    print(reference+' '+transcript+'  '+str(sizes[x]))
+                   
 
                 torch.cuda.synchronize()
                 del out
@@ -270,7 +286,6 @@ if __name__ == '__main__':
             cer_results[epoch] = cer
             logging.info('Validation Summary Epoch: [{0}]\t'
                   'Average CER {cer:.3f}\t'.format(epoch + 1, cer=cer))
-
 
         if args.checkpoint and main_proc:
             file_path = '%s/deepspeech_%d.pth.tar' % (save_folder, epoch + 1)

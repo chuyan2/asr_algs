@@ -143,6 +143,7 @@ class DeepSpeech(nn.Module):
         h0,h1,h2,h3,h4,pre_context= needed
 
         x = self.conv(x)
+        
         sizes = x.size()
         x = x.view(sizes[0], sizes[1] * sizes[2], sizes[3])  # Collapse feature dimension
         x = x.transpose(1, 2).transpose(0, 1).contiguous()  # TxNxH
@@ -168,7 +169,6 @@ class DeepSpeech(nn.Module):
             x, h3 = self.rnn3(x,h3)
             x = self.rnn_bn4(x)
             x, h4 = self.rnn4(x,h4)
-            print(x.size())
             x, tail_context = self.lookahead(x,tail_padding,pre_context)
         x = self.fc(x)
         x = x.transpose(0, 1)
