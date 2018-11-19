@@ -201,7 +201,6 @@ if __name__ == '__main__':
     for epoch in range(start_epoch, args.epochs):
         model.train()
         for i, (data) in enumerate(train_loader):
-            break
             inputs, targets, input_length, target_sizes = data
             if inputs.size(3) < 40:continue
 
