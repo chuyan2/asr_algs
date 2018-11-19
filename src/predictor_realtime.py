@@ -69,7 +69,7 @@ class Predictor(object):
         else:
             self.model = DeepSpeech.load_model(model_path, False)
             
-        #self.model.eval()
+        self.model.eval()
         #self.model.train()
         labels = DeepSpeech.get_labels(self.model)
         audio_conf = DeepSpeech.get_audio_conf(self.model)
@@ -110,9 +110,7 @@ class Predictor(object):
 #        self.model.train()
 #        out1 = self.model(x,tail_padding,self._realtime_info)    
 
-        self.model.eval()
         out2,self._realtime_info = self.model(x,tail_padding,self._realtime_info)    
-        print('out size',out2.size())
         self._realtime_nn_out = torch.cat((self._realtime_nn_out,out2),1)
 
     

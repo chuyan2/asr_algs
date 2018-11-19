@@ -141,9 +141,10 @@ class DeepSpeech(nn.Module):
     def forward(self, x, tail_padding, needed =(None,None,None,None,None,None)):
 
         h0,h1,h2,h3,h4,pre_context= needed
-
+        print(x.size())
         x = self.conv(x)
         
+        print(x.size())
         sizes = x.size()
         x = x.view(sizes[0], sizes[1] * sizes[2], sizes[3])  # Collapse feature dimension
         x = x.transpose(1, 2).transpose(0, 1).contiguous()  # TxNxH
@@ -170,7 +171,9 @@ class DeepSpeech(nn.Module):
             x = self.rnn_bn4(x)
             x, h4 = self.rnn4(x,h4)
             x, tail_context = self.lookahead(x,tail_padding,pre_context)
+            print(x.size())
         x = self.fc(x)
+        print(x.size())
         x = x.transpose(0, 1)
         x = self.inference_softmax(x)
         if self.training:

@@ -23,7 +23,7 @@ parser.add_argument('--train-manifest', metavar='DIR',
 parser.add_argument('--val-manifest', metavar='DIR',
                     help='path to validation manifest csv', default='data/val_manifest.csv')
 parser.add_argument('--batch-size', default=32, type=int, help='Batch size for training')
-parser.add_argument('--lr', '--learning-rate', default=1e-4, type=float, help='initial learning rate')
+parser.add_argument('--lr', '--learning-rate', default=2e-4, type=float, help='initial learning rate')
 
 
 parser.add_argument('--num-workers', default=1, type=int, help='Number of workers used in data-loading')
