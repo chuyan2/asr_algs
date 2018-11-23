@@ -106,7 +106,7 @@ class SpectrogramDataset(Dataset, SpectrogramParserTrain):
         return self.size
 
 
-def _collate_fn(batch):
+def _collate_fn_dep(batch):
     def func(p):
         return p[0].size(1)
     longest_sample = max(batch, key=func)[0]
@@ -124,6 +124,31 @@ def _collate_fn(batch):
         seq_length = tensor.size(1)
         inputs[x][0].narrow(1, 0, seq_length).copy_(tensor)
         input_length[x] = seq_length
+        target_sizes[x] = len(target)
+        targets.extend(target)
+    targets = torch.IntTensor(targets)
+    return inputs, targets, input_length, target_sizes
+
+
+
+def _collate_fn(batch):
+    def func(p):
+        return p[0].size(1)
+    longest_sample = max(batch, key=func)[0]
+    freq_size = longest_sample.size(0)
+    minibatch_size = len(batch)
+    max_seqlength = longest_sample.size(1)
+    inputs = torch.zeros(minibatch_size, 1, freq_size, max_seqlength+20)
+    input_length = torch.FloatTensor(minibatch_size)
+    target_sizes = torch.IntTensor(minibatch_size)
+    targets = []
+    for x in range(minibatch_size):
+        sample = batch[x]
+        tensor = sample[0]
+        target = sample[1]
+        seq_length = tensor.size(1)
+        inputs[x][0].narrow(1, 10, seq_length).copy_(tensor)
+        input_length[x] = seq_length+20
         target_sizes[x] = len(target)
         targets.extend(target)
     targets = torch.IntTensor(targets)
